@@ -3,6 +3,7 @@ import { db } from '../../db/index.js';
 import { messages, replies, licensePlates, users } from '../../db/schema.js';
 import { normalizePlate } from '../../utils/plate.js';
 import { socketService } from '../../socket/socket-service.js';
+import { sendPushNotification } from '../notifications/notifications.service.js';
 import type { FastifyInstance } from 'fastify';
 import type { SendMessageBody, ReplyBody } from './messages.schemas.js';
 
@@ -40,6 +41,14 @@ export async function sendMessage(
   // Real-time: emit to recipient if plate is claimed
   if (plate.userId) {
     socketService.emitToUser(plate.userId, 'new_message', { message });
+
+    // Fire-and-forget push notification to plate owner
+    const pushBody = body.body.length > 100 ? body.body.slice(0, 100) + '...' : body.body;
+    sendPushNotification(
+      plate.userId,
+      { title: 'New Message', body: pushBody },
+      { messageId: message.id },
+    ).catch(() => {});
 
     // Update unread count
     const userPlateIds = await getUserPlateIds(plate.userId);
@@ -232,6 +241,14 @@ export async function addReply(
   const otherUserId = isSender ? message.recipientPlate.userId : message.senderId;
   if (otherUserId) {
     socketService.emitToUser(otherUserId, 'new_reply', { messageId, reply });
+
+    // Fire-and-forget push notification to the other participant
+    const pushBody = body.body.length > 100 ? body.body.slice(0, 100) + '...' : body.body;
+    sendPushNotification(
+      otherUserId,
+      { title: 'New Reply', body: pushBody },
+      { messageId },
+    ).catch(() => {});
   }
 
   return reply;

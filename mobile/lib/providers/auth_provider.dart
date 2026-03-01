@@ -4,6 +4,7 @@ import '../config/storage_keys.dart';
 import '../models/auth_state.dart';
 import '../models/user.dart';
 import '../models/auth_tokens.dart';
+import 'fcm_provider.dart';
 import 'repository_providers.dart';
 import 'socket_provider.dart';
 import 'storage_provider.dart';
@@ -39,6 +40,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       // Connect socket with stored token
       ref.read(socketServiceProvider).connect(accessToken);
 
+      // Register for push notifications
+      ref.read(fcmServiceProvider).initialize();
+
       return AuthState(
         user: user,
         tokens: tokens,
@@ -58,6 +62,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
       await _storeAuthData(response.user, response.tokens);
       ref.read(socketServiceProvider).connect(response.tokens.accessToken);
+
+      // Register for push notifications
+      ref.read(fcmServiceProvider).initialize();
 
       state = AsyncData(AuthState(
         user: response.user,
@@ -92,6 +99,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       await _storeAuthData(response.user, response.tokens);
       ref.read(socketServiceProvider).connect(response.tokens.accessToken);
 
+      // Register for push notifications
+      ref.read(fcmServiceProvider).initialize();
+
       state = AsyncData(AuthState(
         user: response.user,
         tokens: response.tokens,
@@ -105,6 +115,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    // Unregister device token from backend before disconnecting
+    await ref.read(fcmServiceProvider).removeToken();
+
     ref.read(socketServiceProvider).disconnect();
 
     final storage = ref.read(storageProvider);

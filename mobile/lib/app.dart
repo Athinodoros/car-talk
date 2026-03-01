@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers/auth_provider.dart';
+import 'providers/socket_provider.dart';
 import 'router/app_router.dart';
 import 'screens/splash_screen.dart';
 
@@ -12,6 +13,9 @@ class CarPostAllApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final router = ref.watch(goRouterProvider);
+
+    // Keep the connectivity-based socket auto-reconnect listener alive.
+    ref.watch(socketAutoReconnectProvider);
 
     final themeLight = ThemeData(
       useMaterial3: true,

@@ -69,6 +69,13 @@ class SocketService {
     _socket!.connect();
   }
 
+  /// Disconnects the current socket and establishes a fresh connection
+  /// with the given [accessToken]. Use this after network recovery.
+  void reconnect(String accessToken) {
+    disconnect();
+    connect(accessToken);
+  }
+
   void disconnect() {
     _socket?.disconnect();
     _socket?.dispose();
