@@ -1,5 +1,7 @@
 name: car_post_all
-description: Car-to-car messaging via license plates.
+description: >-
+  Car Post All lets drivers leave and read messages attached to any car
+  using its license plate. Send a note, get replies, and connect on the road.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -24,6 +26,7 @@ dependencies:
   google_mobile_ads: any
   firebase_core: any
   firebase_messaging: any
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -37,6 +40,28 @@ dev_dependencies:
   riverpod_generator: any
   custom_lint: any
   riverpod_lint: any
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.6
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  color_dark: "#121212"
+  image: "assets/icon/app_icon.png"
+  android_12:
+    color: "#FFFFFF"
+    color_dark: "#121212"
+    image: "assets/icon/app_icon.png"
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/icon/

@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/inbox_provider.dart';
+import '../widgets/banner_ad_widget.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/error_view.dart';
 import '../widgets/message_tile.dart';
+import '../widgets/shimmer_list.dart';
 
 class InboxScreen extends ConsumerStatefulWidget {
   const InboxScreen({super.key});
@@ -49,54 +51,63 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
       appBar: AppBar(
         title: const Text('Inbox'),
       ),
-      body: inboxState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => ErrorView(
-          message: error.toString(),
-          onRetry: _onRefresh,
-        ),
-        data: (state) {
-          if (state.messages.isEmpty) {
-            return RefreshIndicator(
-              onRefresh: _onRefresh,
-              child: ListView(
-                children: const [
-                  SizedBox(height: 200),
-                  EmptyState(
-                    icon: Icons.inbox_outlined,
-                    title: 'No messages yet',
-                    subtitle: 'Messages sent to your plates will appear here.',
-                  ),
-                ],
+      body: Column(
+        children: [
+          Expanded(
+            child: inboxState.when(
+              loading: () => const ShimmerList(),
+              error: (error, _) => ErrorView(
+                message: error.toString(),
+                onRetry: _onRefresh,
               ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: _onRefresh,
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: state.messages.length + (state.isLoadingMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == state.messages.length) {
-                  return const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator()),
+              data: (state) {
+                if (state.messages.isEmpty) {
+                  return RefreshIndicator(
+                    onRefresh: _onRefresh,
+                    child: ListView(
+                      children: const [
+                        SizedBox(height: 200),
+                        EmptyState(
+                          icon: Icons.inbox_outlined,
+                          title: 'No messages yet',
+                          subtitle:
+                              'Messages sent to your plates will appear here.',
+                        ),
+                      ],
+                    ),
                   );
                 }
 
-                final message = state.messages[index];
-                return MessageTile(
-                  title: message.senderDisplayName,
-                  subtitle: message.subject ?? message.body,
-                  timestamp: message.createdAt,
-                  isRead: message.isRead,
-                  onTap: () => context.go('/inbox/${message.id}'),
+                return RefreshIndicator(
+                  onRefresh: _onRefresh,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount:
+                        state.messages.length + (state.isLoadingMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == state.messages.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      final message = state.messages[index];
+                      return MessageTile(
+                        title: message.senderDisplayName,
+                        subtitle: message.subject ?? message.body,
+                        timestamp: message.createdAt,
+                        isRead: message.isRead,
+                        onTap: () => context.go('/inbox/${message.id}'),
+                      );
+                    },
+                  ),
                 );
               },
             ),
-          );
-        },
+          ),
+          const BannerAdWidget(),
+        ],
       ),
     );
   }

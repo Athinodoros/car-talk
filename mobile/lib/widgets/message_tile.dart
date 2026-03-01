@@ -21,34 +21,40 @@ class MessageTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final relativeTime = formatRelativeTime(timestamp);
+    final readStatus = isRead ? 'read' : 'unread';
 
-    return ListTile(
-      onTap: onTap,
-      leading: isRead
-          ? const SizedBox(width: 12)
-          : Container(
-              width: 12,
-              height: 12,
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-                shape: BoxShape.circle,
+    return Semantics(
+      button: true,
+      label: 'Message from $title, $subtitle, $relativeTime, $readStatus',
+      child: ListTile(
+        onTap: onTap,
+        leading: isRead
+            ? const SizedBox(width: 12)
+            : Container(
+                width: 12,
+                height: 12,
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
-      title: Text(
-        title,
-        style: theme.textTheme.bodyLarge?.copyWith(
-          fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+        title: Text(
+          title,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+          ),
         ),
-      ),
-      subtitle: Text(
-        subtitle,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: Text(
-        formatRelativeTime(timestamp),
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
+        subtitle: Text(
+          subtitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: Text(
+          relativeTime,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
       ),
     );

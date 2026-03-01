@@ -7,14 +7,17 @@ class ReportRepository {
   final ApiClient _apiClient;
 
   Future<void> createReport({
-    String? messageId,
+    required String reportedMessageId,
     required String reason,
+    String? description,
   }) async {
     await _apiClient.dio.post<Map<String, dynamic>>(
       ApiEndpoints.reportsCreate,
       data: {
-        'messageId': ?messageId,
+        'reportedMessageId': reportedMessageId,
         'reason': reason,
+        if (description != null && description.isNotEmpty)
+          'description': description,
       },
     );
   }

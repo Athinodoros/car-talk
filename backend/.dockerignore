@@ -1,0 +1,16 @@
+node_modules
+dist
+tests
+.git
+.gitignore
+.env
+.env.*
+*.md
+vitest.config.ts
+vitest.integration.config.ts
+drizzle.config.ts
+.eslintrc*
+eslint.config*
+.prettierrc*
+coverage
+.vscode

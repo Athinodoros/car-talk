@@ -6,6 +6,7 @@ import '../providers/sent_provider.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/error_view.dart';
 import '../widgets/message_tile.dart';
+import '../widgets/shimmer_list.dart';
 
 class SentScreen extends ConsumerStatefulWidget {
   const SentScreen({super.key});
@@ -50,7 +51,7 @@ class _SentScreenState extends ConsumerState<SentScreen> {
         title: const Text('Sent'),
       ),
       body: sentState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const ShimmerList(),
         error: (error, _) => ErrorView(
           message: error.toString(),
           onRetry: _onRefresh,

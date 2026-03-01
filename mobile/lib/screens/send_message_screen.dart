@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/ad_provider.dart';
 import '../providers/repository_providers.dart';
 import '../utils/plate_formatter.dart';
 import '../utils/validators.dart';
@@ -26,6 +27,8 @@ class _SendMessageScreenState extends ConsumerState<SendMessageScreen> {
   void initState() {
     super.initState();
     _bodyController.addListener(_onBodyChanged);
+    // Preload an interstitial so it is ready by the time the user sends.
+    ref.read(adProvider.notifier).preloadInterstitial();
   }
 
   @override
@@ -55,6 +58,16 @@ class _SendMessageScreenState extends ConsumerState<SendMessageScreen> {
           );
 
       if (!mounted) return;
+
+      // Track the send and show an interstitial every Nth send.
+      final adNotifier = ref.read(adProvider.notifier);
+      adNotifier.incrementSendCount();
+      final adState = ref.read(adProvider);
+      if (adState.shouldShowInterstitial) {
+        adNotifier.showInterstitial();
+        // Preload the next interstitial for future sends.
+        adNotifier.preloadInterstitial();
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Message sent successfully')),
