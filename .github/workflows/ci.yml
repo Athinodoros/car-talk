@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
       - name: TypeScript check
         run: npx tsc --noEmit
 
@@ -43,6 +46,12 @@ jobs:
     defaults:
       run:
         working-directory: mobile
+
+    # NOTE: E2E integration tests (integration_test/) are NOT run in CI.
+    # They require a running backend (Fastify + PostgreSQL) and are designed
+    # for manual local testing. To run them locally:
+    #   1. Start the backend: DOCKER_HOST=tcp://192.168.1.164:2375 docker compose up -d
+    #   2. Run: cd mobile && flutter test integration_test/app_test.dart
 
     steps:
       - name: Checkout code

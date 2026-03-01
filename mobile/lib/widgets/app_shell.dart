@@ -37,6 +37,11 @@ class AppShell extends ConsumerWidget {
     final currentIndex = _currentIndexFromLocation(location);
     final unreadCount = ref.watch(unreadCountProvider);
 
+    final int unread = unreadCount.value ?? 0;
+    final String inboxLabel = unread > 0
+        ? 'Inbox, $unread unread ${unread == 1 ? 'message' : 'messages'}'
+        : 'Inbox';
+
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(
@@ -44,15 +49,25 @@ class AppShell extends ConsumerWidget {
         onDestinationSelected: (index) => _onTap(context, index),
         destinations: [
           NavigationDestination(
-            icon: Badge(
-              isLabelVisible: (unreadCount.value ?? 0) > 0,
-              label: Text('${unreadCount.value ?? 0}'),
-              child: const Icon(Icons.inbox_outlined),
+            icon: Semantics(
+              label: inboxLabel,
+              child: Badge(
+                isLabelVisible: unread > 0,
+                label: ExcludeSemantics(
+                  child: Text('$unread'),
+                ),
+                child: const Icon(Icons.inbox_outlined),
+              ),
             ),
-            selectedIcon: Badge(
-              isLabelVisible: (unreadCount.value ?? 0) > 0,
-              label: Text('${unreadCount.value ?? 0}'),
-              child: const Icon(Icons.inbox),
+            selectedIcon: Semantics(
+              label: inboxLabel,
+              child: Badge(
+                isLabelVisible: unread > 0,
+                label: ExcludeSemantics(
+                  child: Text('$unread'),
+                ),
+                child: const Icon(Icons.inbox),
+              ),
             ),
             label: 'Inbox',
           ),

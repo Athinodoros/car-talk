@@ -29,33 +29,39 @@ class ProfileScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           // User info section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 36,
-                    child: Text(
-                      user?.displayName.isNotEmpty == true
-                          ? user!.displayName[0].toUpperCase()
-                          : '?',
-                      style: theme.textTheme.headlineMedium,
+          Semantics(
+            label: 'Profile: ${user?.displayName ?? 'Unknown'}, '
+                '${user?.email ?? ''}',
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    ExcludeSemantics(
+                      child: CircleAvatar(
+                        radius: 36,
+                        child: Text(
+                          user?.displayName.isNotEmpty == true
+                              ? user!.displayName[0].toUpperCase()
+                              : '?',
+                          style: theme.textTheme.headlineMedium,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    user?.displayName ?? '',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    user?.email ?? '',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    const SizedBox(height: 12),
+                    Text(
+                      user?.displayName ?? '',
+                      style: theme.textTheme.titleLarge,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      user?.email ?? '',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -70,10 +76,14 @@ class ProfileScreen extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              FilledButton.tonalIcon(
-                onPressed: () => _showAddPlateDialog(context, ref),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Plate'),
+              Semantics(
+                button: true,
+                label: 'Add a new license plate',
+                child: FilledButton.tonalIcon(
+                  onPressed: () => _showAddPlateDialog(context, ref),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Plate'),
+                ),
               ),
             ],
           ),
@@ -111,15 +121,23 @@ class ProfileScreen extends ConsumerWidget {
                     .map(
                       (plate) => Card(
                         child: ListTile(
-                          leading: const Icon(Icons.directions_car),
+                          leading: const ExcludeSemantics(
+                            child: Icon(Icons.directions_car),
+                          ),
                           title: Text(plate.plateNumber),
                           subtitle: plate.stateOrRegion != null
                               ? Text(plate.stateOrRegion!)
                               : null,
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () =>
-                                _confirmReleasePlate(context, ref, plate.id),
+                          trailing: Semantics(
+                            button: true,
+                            label:
+                                'Release plate ${plate.plateNumber}',
+                            child: IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              tooltip: 'Release plate',
+                              onPressed: () =>
+                                  _confirmReleasePlate(context, ref, plate.id),
+                            ),
                           ),
                         ),
                       ),
@@ -140,18 +158,22 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           // Logout button
-          OutlinedButton(
-            onPressed: () async {
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) {
-                context.go(RoutePaths.login);
-              }
-            },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.error,
-              side: BorderSide(color: theme.colorScheme.error),
+          Semantics(
+            button: true,
+            label: 'Log out of your account',
+            child: OutlinedButton(
+              onPressed: () async {
+                await ref.read(authProvider.notifier).logout();
+                if (context.mounted) {
+                  context.go(RoutePaths.login);
+                }
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+                side: BorderSide(color: theme.colorScheme.error),
+              ),
+              child: const Text('Logout'),
             ),
-            child: const Text('Logout'),
           ),
         ],
       ),

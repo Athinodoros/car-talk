@@ -4,9 +4,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../app.dart';
 import '../config/storage_keys.dart';
 import '../router/app_router.dart';
 import '../router/route_paths.dart';
+import '../widgets/in_app_notification.dart';
 import 'repository_providers.dart';
 import 'storage_provider.dart';
 
@@ -15,6 +17,47 @@ final fcmServiceProvider = Provider<FcmService>((ref) {
   final service = FcmService(ref);
   ref.onDispose(service.dispose);
   return service;
+});
+
+/// Listens to foreground FCM messages and shows an in-app [MaterialBanner].
+///
+/// Watch this provider from the root widget ([CarPostAllApp]) to keep it alive
+/// for the entire app lifetime.
+final fcmForegroundListenerProvider = Provider<void>((ref) {
+  StreamSubscription<RemoteMessage>? subscription;
+
+  try {
+    subscription =
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      try {
+        final title = message.notification?.title;
+        final body = message.notification?.body;
+        final messageId = message.data['messageId'] as String?;
+
+        final scaffoldMessengerKey =
+            ref.read(scaffoldMessengerKeyProvider);
+        final router = ref.read(goRouterProvider);
+
+        showInAppNotification(
+          scaffoldMessengerKey: scaffoldMessengerKey,
+          router: router,
+          title: title,
+          body: body,
+          messageId: messageId,
+        );
+      } catch (e) {
+        debugPrint(
+          'FCM: failed to show foreground notification: $e',
+        );
+      }
+    });
+  } catch (e) {
+    debugPrint(
+      'FCM: failed to subscribe to foreground messages: $e',
+    );
+  }
+
+  ref.onDispose(() => subscription?.cancel());
 });
 
 /// Manages Firebase Cloud Messaging: permission, token registration,

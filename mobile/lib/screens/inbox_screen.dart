@@ -62,45 +62,56 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
               ),
               data: (state) {
                 if (state.messages.isEmpty) {
-                  return RefreshIndicator(
-                    onRefresh: _onRefresh,
-                    child: ListView(
-                      children: const [
-                        SizedBox(height: 200),
-                        EmptyState(
-                          icon: Icons.inbox_outlined,
-                          title: 'No messages yet',
-                          subtitle:
-                              'Messages sent to your plates will appear here.',
-                        ),
-                      ],
+                  return Semantics(
+                    label: 'Inbox is empty. Pull down to refresh.',
+                    child: RefreshIndicator(
+                      onRefresh: _onRefresh,
+                      child: ListView(
+                        children: const [
+                          SizedBox(height: 200),
+                          EmptyState(
+                            icon: Icons.inbox_outlined,
+                            title: 'No messages yet',
+                            subtitle:
+                                'Messages sent to your plates will appear here.',
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
 
-                return RefreshIndicator(
-                  onRefresh: _onRefresh,
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    itemCount:
-                        state.messages.length + (state.isLoadingMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == state.messages.length) {
-                        return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
+                return Semantics(
+                  label: '${state.messages.length} messages. Pull down to refresh.',
+                  child: RefreshIndicator(
+                    onRefresh: _onRefresh,
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount:
+                          state.messages.length + (state.isLoadingMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == state.messages.length) {
+                          return Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Center(
+                              child: Semantics(
+                                label: 'Loading more messages',
+                                child: const CircularProgressIndicator(),
+                              ),
+                            ),
+                          );
+                        }
 
-                      final message = state.messages[index];
-                      return MessageTile(
-                        title: message.senderDisplayName,
-                        subtitle: message.subject ?? message.body,
-                        timestamp: message.createdAt,
-                        isRead: message.isRead,
-                        onTap: () => context.go('/inbox/${message.id}'),
-                      );
-                    },
+                        final message = state.messages[index];
+                        return MessageTile(
+                          title: message.senderDisplayName,
+                          subtitle: message.subject ?? message.body,
+                          timestamp: message.createdAt,
+                          isRead: message.isRead,
+                          onTap: () => context.go('/inbox/${message.id}'),
+                        );
+                      },
+                    ),
                   ),
                 );
               },
