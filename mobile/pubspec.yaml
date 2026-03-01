@@ -1,0 +1,40 @@
+name: car_post_all
+description: Car-to-car messaging via license plates.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  go_router: any
+  flutter_riverpod: any
+  riverpod_annotation: any
+  freezed_annotation: any
+  json_annotation: any
+  dio: any
+  socket_io_client: any
+  flutter_secure_storage: any
+  connectivity_plus: any
+  package_info_plus: any
+  intl: any
+  google_mobile_ads: any
+  firebase_core: any
+  firebase_messaging: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: any
+  build_runner: any
+  freezed: any
+  json_serializable: any
+  riverpod_generator: any
+  custom_lint: any
+  riverpod_lint: any
+
+flutter:
+  uses-material-design: true

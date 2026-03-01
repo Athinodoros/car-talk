@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: carpost
+      POSTGRES_PASSWORD: carpost_dev
+      POSTGRES_DB: carpostall
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carpost -d carpostall"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: "3000"
+      DATABASE_URL: "postgres://carpost:carpost_dev@postgres:5432/carpostall"
+      JWT_SECRET: "dev-jwt-secret-change-in-production"
+      JWT_REFRESH_SECRET: "dev-jwt-refresh-secret-change-in-production"
+      NODE_ENV: "development"
+    volumes:
+      - ./backend/src:/app/src
+    command: ["npx", "tsx", "watch", "src/index.ts"]
+
+volumes:
+  pgdata:
