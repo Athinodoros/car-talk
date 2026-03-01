@@ -20,6 +20,10 @@ export class SocketService {
     return this.connectedUsers.has(userId);
   }
 
+  getActiveConnectionCount(): number {
+    return this.connectedUsers.size;
+  }
+
   emitToUser(userId: string, event: string, data: unknown) {
     if (this.io) {
       this.io.to(`user:${userId}`).emit(event, data);

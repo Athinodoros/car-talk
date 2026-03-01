@@ -122,6 +122,7 @@ const { createMockDb: _createMockDb, mockDbHolder } = vi.hoisted(() => {
       update: createFn().mockImplementation(() => updateChain()),
       delete: createFn().mockImplementation(() => deleteChain()),
       select: createFn().mockImplementation(() => selectChain()),
+      execute: createFn().mockResolvedValue([{ '?column?': 1 }]),
       transaction: createFn().mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
         const txInsertResult: unknown[] = [];
         const txInsertChain = () => createChainableMock(() => txInsertResult);
@@ -203,8 +204,9 @@ vi.mock('../../../src/socket/socket-service.js', () => {
   const addUser = () => {};
   const removeUser = () => {};
   const setServer = () => {};
+  const getActiveConnectionCount = () => 0;
   return {
-    socketService: { emitToUser, isUserConnected, addUser, removeUser, setServer },
+    socketService: { emitToUser, isUserConnected, addUser, removeUser, setServer, getActiveConnectionCount },
   };
 });
 
@@ -224,6 +226,10 @@ import platesRoutes from '../../../src/modules/plates/plates.routes.js';
 import messagesRoutes from '../../../src/modules/messages/messages.routes.js';
 import notificationsRoutes from '../../../src/modules/notifications/notifications.routes.js';
 import reportsRoutes from '../../../src/modules/reports/reports.routes.js';
+import { metricsPlugin, register, websocketConnectionsActive } from '../../../src/utils/metrics.js';
+import { db } from '../../../src/db/index.js';
+import { sql } from 'drizzle-orm';
+import { socketService } from '../../../src/socket/socket-service.js';
 
 /**
  * Access the mock db object. Must be called after imports have been resolved
@@ -254,9 +260,36 @@ export async function buildApp(): Promise<FastifyInstance> {
     reply.send(error);
   });
 
-  // Health check
-  app.get('/health', async () => {
-    return { status: 'ok', timestamp: new Date().toISOString() };
+  // Register metrics hooks
+  await app.register(metricsPlugin);
+
+  // Health check — enhanced (mirrors production)
+  app.get('/health', async (_request, reply) => {
+    let dbStatus: 'ok' | 'error' = 'ok';
+
+    try {
+      await (db as unknown as { execute: (q: unknown) => Promise<unknown> }).execute(sql`SELECT 1`);
+    } catch {
+      dbStatus = 'error';
+    }
+
+    const status = dbStatus === 'ok' ? 'ok' : 'degraded';
+    const statusCode = dbStatus === 'ok' ? 200 : 503;
+
+    return reply.code(statusCode).send({
+      status,
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      db: dbStatus,
+    });
+  });
+
+  // Prometheus metrics endpoint (mirrors production)
+  app.get('/metrics', async (_request, reply) => {
+    websocketConnectionsActive.set(socketService.getActiveConnectionCount());
+    const metricsOutput = await register.metrics();
+    return reply.type(register.contentType).send(metricsOutput);
   });
 
   // Register all route modules
@@ -311,6 +344,7 @@ export function resetDbMocks() {
   current.update = fresh.update;
   current.delete = fresh.delete;
   current.select = fresh.select;
+  current.execute = fresh.execute;
   current.transaction = fresh.transaction;
   current._setInsertResult = fresh._setInsertResult;
   current._setUpdateResult = fresh._setUpdateResult;

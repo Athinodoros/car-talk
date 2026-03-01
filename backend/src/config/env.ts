@@ -7,6 +7,7 @@ interface EnvConfig {
   JWT_REFRESH_SECRET: string;
   NODE_ENV: 'development' | 'production' | 'test';
   FIREBASE_SERVICE_ACCOUNT_KEY: string | undefined;
+  SENTRY_DSN: string | undefined;
 }
 
 function getEnv(): EnvConfig {
@@ -25,6 +26,7 @@ function getEnv(): EnvConfig {
     JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET!,
     NODE_ENV: (process.env.NODE_ENV as EnvConfig['NODE_ENV']) || 'development',
     FIREBASE_SERVICE_ACCOUNT_KEY: process.env.FIREBASE_SERVICE_ACCOUNT_KEY,
+    SENTRY_DSN: process.env.SENTRY_DSN || undefined,
   };
 }
 

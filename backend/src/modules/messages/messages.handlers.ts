@@ -13,10 +13,12 @@ import {
   markAsRead,
   addReply,
 } from './messages.service.js';
+import { messagesSentTotal } from '../../utils/metrics.js';
 
 export async function sendMessageHandler(request: FastifyRequest, reply: FastifyReply) {
   const body = sendMessageBodySchema.parse(request.body);
   const message = await sendMessage(request.server, request.user.id, body);
+  messagesSentTotal.inc();
   return reply.code(201).send({ message });
 }
 
